@@ -21,7 +21,7 @@ pipeline {
     }
     stage('Static Code Analysis') {
       environment {
-        SONAR_URL = "http://13.233.197.181:9000/" 
+        SONAR_URL = "http://13.201.127.241:9000/" 
       }
       steps {
         withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
@@ -31,7 +31,7 @@ pipeline {
     }
     stage('Build and Push Docker Image') {
       environment {
-        DOCKER_IMAGE = "abhishekf5/ultimate-cicd:${BUILD_NUMBER}"
+        DOCKER_IMAGE = "harshsoni777/ultimate-cicd:${BUILD_NUMBER}"
         // DOCKERFILE_LOCATION = "java-maven-sonar-argocd-helm-k8s/spring-boot-app/Dockerfile"
         REGISTRY_CREDENTIALS = credentials('docker-cred')
       }
@@ -47,14 +47,14 @@ pipeline {
     }
     stage('Update Deployment File') {
         environment {
-            GIT_REPO_NAME = "Jenkins-Zero-To-Hero"
-            GIT_USER_NAME = "iam-veeramalla"
+            GIT_REPO_NAME = "DevOps-Project"
+            GIT_USER_NAME = "iam-harshsoni"
         }
         steps {
             withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                 sh '''
-                    git config user.email "abhishek.xyz@gmail.com"
-                    git config user.name "Abhishek Veeramalla"
+                    git config user.email "harsh.xyz@gmail.com"
+                    git config user.name "Harsh Soni"
                     BUILD_NUMBER=${BUILD_NUMBER}
                     sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
                     git add java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
