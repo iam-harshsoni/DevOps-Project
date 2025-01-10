@@ -13,7 +13,7 @@
 
 _*Welcome to the ultimate resource for **learning DevOps through hands-on projects!***_
 
-## Repository Contents for DevOps Projects from Beginner to Advanced Levels
+## Repository Contents for DevOps Projects
 
 > [!IMPORTANT]
 >
