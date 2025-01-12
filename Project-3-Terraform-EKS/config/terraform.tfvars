@@ -148,3 +148,49 @@ route_table_association_config = {
         route_table_name = "RT_03"
     }
 }
+
+aws_eks_cluster_config = {
+    demo-cluster = {
+        eks_cluster_name = "demo-cluster"
+
+        subnet1 = "public-ap-south-1a"
+        subnet2 = "public-ap-south-1b"
+        subnet3 = "private-ap-south-1a"
+        subnet4 = "private-ap-south-1b"
+
+        tags = {
+            "Name" = "demo-cluster"
+        }
+    }
+}
+
+aws_eks_nodegroups_config = {
+
+    node1 ={
+        node_group_name = "node1"
+        eks_cluster_name =  "demo-cluster"
+
+        node_iam_role = "eks-node-general1"
+
+        subnet1="private-ap-south-1a"
+        subnet2="private-ap-south-1b"
+
+        tags = {
+            "Name" = "node1"
+        }
+    }
+
+     node2 ={
+        node_group_name = "node2"
+        eks_cluster_name =  "demo-cluster"
+
+        node_iam_role = "eks-node-general2"
+
+        subnet1="private-ap-south-1a"
+        subnet2="private-ap-south-1b"
+
+        tags = {
+            "Name" = "node2"
+        }
+    }
+}

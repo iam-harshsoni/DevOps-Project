@@ -66,3 +66,32 @@ module "aws_route_table_association_module" {
   subnet_id = module.subnet_module[each.value.subnet_name].subnet_id
   route_table_id = module.route_table_module[each.value.route_table_name].route_table_id
 }
+
+module "aws_eks_cluster_module"{
+  source = "./modules/aws_eks"
+
+  for_each = var.aws_eks_cluster_config
+
+  eks_cluster_name = each.value.eks_cluster_name
+  subnet_ids = [module.subnet_module[each.value.subnet1].subnet_id,
+  module.subnet_module[each.value.subnet2].subnet_id,
+  module.subnet_module[each.value.subnet3].subnet_id,
+  module.subnet_module[each.value.subnet4].subnet_id]
+
+  tags = each.value.tags
+
+}
+
+module "aws_eks_nodegroup_module"{
+  source = "./modules/aws_eks_node_group"
+
+  for_each = var.aws_eks_nodegroups_config
+
+  node_group_name=each.value.node_group_name
+  eks_cluster_name=module.aws_eks_cluster_module[each.value.eks_cluster_name].eks_cluster
+  subnet_ids=[module.subnet_module[each.value.subnet1].subnet_id,
+  module.subnet_module[each.value.subnet2].subnet_id]
+  node_iam_role=each.value.node_iam_role
+  tags = each.value.tags
+
+}
