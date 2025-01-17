@@ -21,6 +21,26 @@ pipeline {
             }
         }
         
+        stage('Complie') {
+            steps {
+                sh 'mvn complie'
+            }
+        }
+
+        stage('Tests') {
+            steps {
+                sh 'mvn test -DskipTests=true'
+            }
+        }
+
+           
+        stage('Trivy FS Scan') {
+            steps {
+                sh "trivy fs --format table -o fs.html ."
+            }
+        }
+        
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar') {
@@ -28,13 +48,29 @@ pipeline {
                 }
             }
         }
-        
-        stage('Trivy FS Scan') {
+
+        stage('Quality Gate Check') {
             steps {
-                sh "trivy fs --format table -o fs.html ."
+               timeout(time: 1, unit: 'HOURS'){
+                    waitForQualityGate abortPipeline: false
+               }
             }
         }
+        stage('Build') {
+            steps {
+               sh 'mvn package -DskipTests=true'
+            }
+        }
+
+        stage('Publish Artifact to Nexus') {
+            steps {
+               withMaven(globalMavenSettingsConfig: 'maven-settings',jdk: '', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
+                    sh 'mvn deploy -DskipTests=true'
+               }
+            }
+        }       
         
+     
         stage('Docker build') {
             steps {
                 script {

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bankapp
-        image: adijaiswal/bankapp:green # Adjust the image tag for the green version
+        image: harshsoni777/bankapp:green # Adjust the image tag for the green version
         ports:
         - containerPort: 8080
         env:
