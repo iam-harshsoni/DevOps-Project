@@ -47,8 +47,9 @@ kubectl delete -f k8s-specifications/
 ```
 
 ## Architecture
+![azureCICD](https://github.com/user-attachments/assets/fd47b4ea-d149-4b4b-9014-14c4d44550a0)
 
-![Architecture diagram](architecture.excalidraw.png)
+
 
 * A front-end web app in [Python](/vote) which lets you vote between two options
 * A [Redis](https://hub.docker.com/_/redis/) which collects new votes
@@ -63,3 +64,13 @@ The voting application only accepts one vote per client browser. It does not reg
 This isn't an example of a properly architected perfectly designed distributed app... it's just a simple
 example of the various types of pieces and languages you might see (queues, persistent data, etc), and how to
 deal with them in Docker at a basic level.
+
+# Command to create ACR ImagePullSecret
+
+```
+kubectl create secret docker-registry <secret-name> \
+    --namespace <namespace> \
+    --docker-server=<container-registry-name>.azurecr.io \
+    --docker-username=<service-principal-ID> \
+    --docker-password=<service-principal-password>
+```
