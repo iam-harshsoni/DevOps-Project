@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  mongodb:
+    container_name: mongo_db
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME} #update the value in .env file
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD} #update the value in .env file
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE} #update the value in .env file
+
+  user-api:
+    container_name: user_api
+    build:
+      context: ./user-api
+    image: user-api:v1
+    ports:
+      - "1004:1004"
+    environment:
+      - MONGO_URL=${MONGO_URL} #update the value in .env file
+      - ADMIN_EMAIL=${ADMIN_EMAIL} #update the value in .env file
+    depends_on:
+      - mongodb
+
+  user-ui:
+    container_name: user_ui
+    build:
+      context: ./user-ui
+    image: user-ui:v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+
+  admin-api:
+    container_name: admin_api
+    build:
+      context: ./admin-api
+    image: admin-api:v1
+    ports:
+      - "1005:1004"
+    environment:
+      - MONGO_URL=${MONGO_URL} #update the value in .env file
+    depends_on:
+      - mongodb
+
+  admin-ui:
+    container_name: admin_ui
+    build:
+      context: ./admin-ui
+    image: admin-ui:v1
+    ports:
+      - "3001:3000"
+    depends_on:
+      - mongodb
+
+volumes:
+  data:
