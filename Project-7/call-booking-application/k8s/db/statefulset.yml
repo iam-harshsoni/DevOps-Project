@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-db
+  namespace: database
+  labels:
+    module: database
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      app: mongo-db # has to match .spec.template.metadata.labels
+  serviceName: mongo-db-svc
+  replicas: 2 # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        app: mongo-db # has to match .spec.selector.matchLabels
+        module: database
+        env: dev
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongo-db
+        image: mongo
+        ports:
+        - containerPort: 27017
+          name: dbport
+
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-db-secrets
+              key: dbuser
+
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-db-secrets
+              key: dbpass
+        
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "1500m"
+            memory: "8Gi"
+
+        readinessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+              - mongo
+              - --eval
+              - db.adminCommand('ping')
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+          
+      #   volumeMounts:
+      #   - name: my-data
+      #     mountPath: /data/db
+      # volumes:
+      #   - name:  my-data
+      #     persistentVolumeClaim:
+      #       claimName: mongo-db-pvc

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-api
+  namespace: user
+  labels:
+    module: user
+    env: dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-api
+  template:
+    metadata:
+      labels:
+        app: user-api
+        module: user
+        env: dev
+    spec:
+      containers:
+      - name: user-api
+        image: harshsoni777/user-api:v1
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "1Gi"
+          limits:
+            cpu: "500m"
+            memory: "2Gi"
+        ports:
+        - containerPort: 1025
+          name: http
+        env:
+        - name:  MONGO_URL
+          valueFrom:
+            secretKeyRef:
+              name: user-api-secrets
+              key: connectionstring
+        - name: PORT
+          value: "1025"
+        - name: ADMIN_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: user-api-cm
+              key: email
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 1025
+          initialDelaySeconds: 90
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 1025
+          initialDelaySeconds: 30
+          timeoutSeconds: 10

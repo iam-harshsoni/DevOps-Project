@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-ui-cm
+  namespace: user
+  labels:
+    module: user
+    env: dev
+data:
+  .env: |
+      REACT_APP_API_URL= http://localhost:1025

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-ui-cm
+  namespace: admin
+  labels:
+    module: admin
+    env: dev
+data:
+  .env: |
+      REACT_APP_API_URL= http://localhost:1026

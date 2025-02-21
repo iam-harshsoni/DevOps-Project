@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-api-cm
+  namespace: user
+  labels:
+    module: user
+    env: dev
+data:
+  email: harshsoni6011@gmail.com
