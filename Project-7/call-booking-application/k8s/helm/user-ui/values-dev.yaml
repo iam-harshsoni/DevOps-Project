@@ -1,0 +1,27 @@
+apps:
+  replicas: 1
+  env: dev
+  computers:
+    requests:
+      cpu: "250m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  image: harshsoni777/user-ui:v1
+  containerPort: 3000
+
+hpa:
+  enabled: false
+  
+service:
+  port: 3000
+  targetPort: 3000
+  nodePort: 32005
+  type: NodePort
+
+volume:
+  name: user-ui-vi #volume and volumeMount Name
+
+configMap:
+  name: user-ui-cm

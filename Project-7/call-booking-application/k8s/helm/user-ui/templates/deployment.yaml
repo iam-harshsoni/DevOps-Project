@@ -1,68 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "user-ui.fullname" . }}
+  name: user-ui
+  {{- include "ui.namespace" . | nindent 2 }} #namespace
   labels:
-    {{- include "user-ui.labels" . | nindent 4 }}
+    {{- include "ui.labels" . | nindent 4 }} #labels
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: {{ .Values.apps.replicas }} #replics
   selector:
     matchLabels:
-      {{- include "user-ui.selectorLabels" . | nindent 6 }}
+      app: user-ui
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "user-ui.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        {{- include "ui.labels" . | nindent 8 }} #labels
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "user-ui.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+      - name: user-ui
+        image: {{ .Values.apps.image }} #ContainerImage
+        resources:
+          {{- toYaml .Values.apps.computers | nindent 10 }} #resourceQuota
+        ports:
+        - containerPort: {{ .Values.apps.containerPort }}
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 3000
+        #   initialDelaySeconds: 30
+        #   timeoutSeconds: 5
+        #   failureThreshold: 5
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 3000
+        #   initialDelaySeconds: 30
+        #   timeoutSeconds: 10
+        volumeMounts:
+        - name:  {{ .Values.volume.name }}
+          mountPath:  /app/.env
+          subPath: .env
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      - name:  {{ .Values.volume.name }}
+        configMap:
+          name: {{ .Values.configMap.name }}

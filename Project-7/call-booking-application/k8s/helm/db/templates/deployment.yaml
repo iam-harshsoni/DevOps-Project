@@ -1,68 +1,72 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: {{ include "db.fullname" . }}
+  name: mongo-db
+  namespace: database
   labels:
-    {{- include "db.labels" . | nindent 4 }}
+   {{- include "db.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
-      {{- include "db.selectorLabels" . | nindent 6 }}
+      app: mongo-db # has to match .spec.template.metadata.labels
+  serviceName: mongo-db-svc
+  replicas: {{ .Values.db.replicas }} # by default is 1
+  minReadySeconds: 10 # by default is 0
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
+        #app: mongo-db # has to match .spec.selector.matchLabels
         {{- include "db.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "db.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 10
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      - name: mongo-db
+        image: mongo
+        ports:
+        - containerPort: 27017
+          name: dbport
+
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-db-secrets
+              key: dbuser
+
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-db-secrets
+              key: dbpass
+        
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "1500m"
+            memory: "8Gi"
+
+        readinessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+              - mongo
+              - --eval
+              - db.adminCommand('ping')
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+          
+      #   volumeMounts:
+      #   - name: my-data
+      #     mountPath: /data/db
+      # volumes:
+      #   - name:  my-data
+      #     persistentVolumeClaim:
+      #       claimName: mongo-db-pvc

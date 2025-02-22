@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "user-ui.fullname" . }}
+  name: user-ui-svc
+  {{- include "ui.namespace" . | nindent 2 }}
   labels:
-    {{- include "user-ui.labels" . | nindent 4 }}
+   {{- include "ui.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
   selector:
-    {{- include "user-ui.selectorLabels" . | nindent 4 }}
+    app: user-ui
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetPort }}
+    nodePort: {{ .Values.service.nodePort }}

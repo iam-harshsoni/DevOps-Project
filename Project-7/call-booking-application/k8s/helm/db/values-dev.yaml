@@ -1,0 +1,3 @@
+db:
+  replicas: 1
+  env: dev

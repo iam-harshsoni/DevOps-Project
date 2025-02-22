@@ -1,3 +1,36 @@
+#secrets.yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongo-db-secrets
+  namespace: database
+  labels:
+    module: database
+    env: dev
+type: Opaque
+data:
+  dbuser: bW9uZ29hZG1pbg==
+  dbpass: c2VjcmV0
+
+---
+#service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-db-svc
+  namespace: database
+  labels:
+    module: database
+    env: dev
+spec:
+  selector:
+    app: mongo-db
+  ports:
+  - port: 27017
+    targetPort: dbport
+
+---
+#statefulset.yml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
