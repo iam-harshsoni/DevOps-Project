@@ -1,0 +1,22 @@
+apps:
+  replicas: 3
+  env: qa
+  name: admin-api
+  image: harshsoni777/admin-api:v1
+  computers:
+    requests:
+      cpu: "300m"
+      memory: "1.5Gi"
+    limits:
+      cpu: "750m"
+      memory: "4Gi"
+  containerPort: 1026
+
+service:
+  port: 1026
+  targetPort: 1026
+  nodePort: 32003
+  type: NodePort
+
+secrets:
+  connectionString: bW9uZ29kYjovL21vbmdvYWRtaW46c2VjcmV0QG1vbmdvLWRiLXN2Yy5kYXRhYmFzZS5zdmMuY2x1c3Rlci5sb2NhbC8/cmV0cnlXcml0ZXM9dHJ1ZSZ3PW1ham9yaXR5Cg==

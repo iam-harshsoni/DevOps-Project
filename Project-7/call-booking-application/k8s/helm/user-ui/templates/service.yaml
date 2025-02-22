@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-ui-svc
-  {{- include "ui.namespace" . | nindent 2 }}
+  namespace: {{ include "ui.namespace" . }} #namespace
   labels:
    {{- include "ui.labels" . | nindent 4 }}
 spec:

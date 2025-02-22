@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-ui
-  {{- include "ui.namespace" . | nindent 2 }} #namespace
+  name: {{ .Values.apps.name }}-{{ .Release.Name }}
+  namespace: {{ include "ui.namespace" . }} #namespace
   labels:
     {{- include "ui.labels" . | nindent 4 }} #labels
 spec:
@@ -42,4 +42,4 @@ spec:
       volumes:
       - name:  {{ .Values.volume.name }}
         configMap:
-          name: {{ .Values.configMap.name }}
+          name: {{ include "ui.cm.name" . }}

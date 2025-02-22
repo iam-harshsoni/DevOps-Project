@@ -1,17 +1,17 @@
 db:
-  replicas: 1
-  env: dev
+  replicas: 5
+  env: prod
   name: mongo-db
 
   containerPort: 27017
 
   computers:
     requests:
-      cpu: "1000m"
-      memory: "2Gi"
+      cpu: "2000m"
+      memory: "3Gi"
     limits:
-      cpu: "1500m"
-      memory: "8Gi"
+      cpu: "2500m"
+      memory: "12Gi"
 
 secret:
   dbuser: bW9uZ29hZG1pbg==

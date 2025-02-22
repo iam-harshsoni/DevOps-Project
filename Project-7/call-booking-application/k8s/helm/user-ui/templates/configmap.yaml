@@ -1,0 +1,11 @@
+#configmap.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ui.cm.name" . }}
+  namespace: {{ include "ui.namespace" . }} #namespace
+  labels:
+   {{- include "ui.labels" . | nindent 4 }} #labels
+data:
+  .env: |
+      {{ .Values.configMap.env }}

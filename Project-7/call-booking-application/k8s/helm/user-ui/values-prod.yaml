@@ -1,6 +1,7 @@
 apps:
   replicas: 4
   env: prod
+  name: user-ui
   computers:
     requests:
       cpu: "500m"
@@ -27,4 +28,4 @@ volume:
   name: user-ui-vi #volume and volumeMount Name
 
 configMap:
-  name: user-ui-cm
+  env: REACT_APP_API_URL= http://localhost:1025

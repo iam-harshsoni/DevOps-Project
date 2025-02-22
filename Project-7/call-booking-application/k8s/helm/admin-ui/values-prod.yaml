@@ -1,0 +1,26 @@
+apps:
+  replicas: 4
+  env: dev
+  image: harshsoni777/admin-ui:v1
+  name: admin-ui
+  computers:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "1000m"
+      memory: "8Gi"
+  
+  containerPort: 3000
+
+volume:
+  name:  admin-ui-vi
+
+service:
+  port: 3001
+  targetPort: 3000
+  type: NodePort
+
+
+configmap:
+  env: REACT_APP_API_URL= http://localhost:1026

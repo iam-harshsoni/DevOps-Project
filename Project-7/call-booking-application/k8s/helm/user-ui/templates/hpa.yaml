@@ -3,7 +3,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: user-ui
-  {{- include "ui.namespace" . | nindent 2 }}
+  namespace: {{ include "ui.namespace" . }} #namespace
   labels:
     {{- include "ui.labels" . | nindent 4 }}
 spec:

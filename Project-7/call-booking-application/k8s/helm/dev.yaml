@@ -1,0 +1,111 @@
+---
+# Source: db/templates/secret.yaml
+#secrets.yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongo-db-secrets
+  namespace: database
+  labels:
+    app: mongo-db
+    module: database
+    env: dev
+type: Opaque
+data:
+  dbuser: bW9uZ29hZG1pbg==
+  dbpass: c2VjcmV0
+---
+# Source: db/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-db-svc
+  namespace: database
+  labels:
+    app: mongo-db
+    module: database
+    env: dev
+spec:
+  selector:
+    app: mongo-db
+  ports:
+  - port: 27017
+    targetPort: dbport
+---
+# Source: db/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-db
+  namespace: database
+  labels:
+    app: mongo-db
+    module: database
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      app: mongo-db # has to match .spec.template.metadata.labels
+  serviceName: mongo-db-svc
+  replicas: 1 # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        #app: mongo-db # has to match .spec.selector.matchLabels
+        app: mongo-db
+        module: database
+        env: dev
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongo-db
+        image: mongo
+        ports:
+        - containerPort: 27017
+          name: dbport
+
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-db-secrets
+              key: dbuser
+
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-db-secrets
+              key: dbpass
+        
+        resources:
+          limits:
+            cpu: 1500m
+            memory: 8Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+
+        readinessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+              - mongo
+              - --eval
+              - db.adminCommand('ping')
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+          
+      #   volumeMounts:
+      #   - name: my-data
+      #     mountPath: /data/db
+      # volumes:
+      #   - name:  my-data
+      #     persistentVolumeClaim:
+      #       claimName: mongo-db-pvc

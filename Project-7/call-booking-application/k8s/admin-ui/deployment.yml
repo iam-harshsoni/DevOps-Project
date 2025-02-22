@@ -9,7 +9,7 @@ metadata:
     env: dev
 data:
   .env: |
-      REACT_APP_API_URL= http://localhost:1026
+      REACT_APP_API_URL= http://localhost:1026 
       
 ---
 #service.yml

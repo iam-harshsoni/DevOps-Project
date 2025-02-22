@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mongo-db
-  namespace: database
+  name: {{ .Values.db.name }}-{{ .Release.Name }}
+  namespace: {{ include "db.namespace" . }}  # Correct namespace key
   labels:
-   {{- include "db.labels" . | nindent 4 }}
+    {{- include "db.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
       app: mongo-db # has to match .spec.template.metadata.labels
-  serviceName: mongo-db-svc
+  serviceName: {{ include "db.svc.name" . }}
   replicas: {{ .Values.db.replicas }} # by default is 1
   minReadySeconds: 10 # by default is 0
   template:
@@ -23,33 +23,28 @@ spec:
       - name: mongo-db
         image: mongo
         ports:
-        - containerPort: 27017
+        - containerPort: {{ .Values.db.containerPort }}
           name: dbport
 
         env:
         - name: MONGO_INITDB_ROOT_USERNAME
           valueFrom:
             secretKeyRef:
-              name: mongo-db-secrets
+              name: {{ include "db.secret.name" . }}
               key: dbuser
 
         - name: MONGO_INITDB_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mongo-db-secrets
+              name: {{ include "db.secret.name" . }}
               key: dbpass
         
         resources:
-          requests:
-            cpu: "1000m"
-            memory: "2Gi"
-          limits:
-            cpu: "1500m"
-            memory: "8Gi"
+          {{- toYaml .Values.db.computers | nindent 10 }}
 
         readinessProbe:
           tcpSocket:
-            port: 27017
+            port: {{ .Values.db.containerPort }}
           initialDelaySeconds: 60
           timeoutSeconds: 10
           periodSeconds: 5
