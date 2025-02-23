@@ -1,21 +1,21 @@
-{{- define "api-labels" -}}
+{{- define "user.api-labels" -}}
 app: user-api
 module: user
 env: {{ .Values.apps.env }}
 {{- end -}}
 
-{{- define "api-namespace" -}}
+{{- define "user.api-namespace" -}}
 user
 {{- end -}}
 
-{{- define "api-selector-label" -}}
+{{- define "user.api-selector-label" -}}
 app: user-api
 {{- end -}}
 
-{{- define "api-secret-name" -}}
+{{- define "user.api-secret-name" -}}
 user-api-secrets-{{ .Release.Name }}
 {{- end -}}
 
-{{- define "api-cm-name" -}}
+{{- define "user.api-cm-name" -}}
 user-api-cm-{{ .Release.Name }}
 {{- end -}}

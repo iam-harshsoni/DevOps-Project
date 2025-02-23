@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.apps.name }}-{{ .Release.Name }}
+  namespace: {{ include "user.ui.namespace" . }} #namespace
+  labels:
+    {{- include "user.ui.labels" . | nindent 4 }} #labels
+spec:
+  replicas: {{ .Values.apps.replicas }} #replics
+  selector:
+    matchLabels:
+      app: user-ui
+  template:
+    metadata:
+      labels:
+        {{- include "user.ui.labels" . | nindent 8 }} #labels
+    spec:
+      containers:
+      - name: user-ui
+        image: {{ .Values.apps.image }} #ContainerImage
+        resources:
+          {{- toYaml .Values.apps.computers | nindent 10 }} #resourceQuota
+        ports:
+        - containerPort: {{ .Values.apps.containerPort }}
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 3000
+        #   initialDelaySeconds: 30
+        #   timeoutSeconds: 5
+        #   failureThreshold: 5
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 3000
+        #   initialDelaySeconds: 30
+        #   timeoutSeconds: 10
+        volumeMounts:
+        - name:  {{ .Values.volume.name }}
+          mountPath:  /app/.env
+          subPath: .env
+      volumes:
+      - name:  {{ .Values.volume.name }}
+        configMap:
+          name: {{ include "user.ui.cm.name" . }}

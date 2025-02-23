@@ -1,0 +1,8 @@
+global:
+  env: dev  # Change this to 'qa' or 'prod' when deploying different environments
+
+admin-api: {}
+admin-ui: {}
+user-api: {}
+user-ui: {}
+db: {}

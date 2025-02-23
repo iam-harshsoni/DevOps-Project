@@ -1,0 +1,10 @@
+#configmap.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "user.api.cm.name" . }}
+  namespace: {{ include "user.api.namespace" . }}
+  labels:
+   {{- include "user.api.labels" . | nindent 4 }}
+data:
+  email: {{ .Values.configMap.email }}

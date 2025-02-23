@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.apps.name }}-{{ .Release.Name }}
-  namespace: {{ include "user.api-namespace" . }}
+  namespace: {{ include "user.api.namespace" . }}
   labels:
-   {{- include "user.api-labels" . | nindent 4 }}
+   {{- include "user.api.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.apps.replicas }}
   selector:
     matchLabels:
-     {{- include "user.api-selector-label" . | nindent 6 }}
+     {{- include "user.api.selector.label" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "user.api-labels" . | nindent 8 }}
+        {{- include "user.api.labels" . | nindent 8 }}
     spec:
       containers:
       - name: {{ .Values.apps.containerName }}
@@ -27,14 +27,14 @@ spec:
         - name:  MONGO_URL
           valueFrom:
             secretKeyRef:
-              name: {{ include "user.api-secret-name" . }}
+              name: {{ include "user.api.secret.name" . }}
               key: connectionstring
         - name: PORT
           value: "1025"
         - name: ADMIN_EMAIL
           valueFrom:
             configMapKeyRef:
-              name: {{ include "user.api-cm-name" . }}
+              name: {{ include "user.api.cm.name" . }}
               key: email
         livenessProbe:
           httpGet:

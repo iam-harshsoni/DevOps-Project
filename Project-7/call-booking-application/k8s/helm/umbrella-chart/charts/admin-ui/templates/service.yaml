@@ -6,7 +6,7 @@ metadata:
   labels:
    {{- include "admin.ui.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: NodePort
   selector:
     app: admin-ui
   ports:

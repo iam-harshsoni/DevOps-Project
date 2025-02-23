@@ -1,4 +1,4 @@
-{{- define "admin.ui-labels" -}}
+{{- define "admin.ui.labels" -}}
 app: admin-ui
 module: admin
 env: {{ .Values.apps.env }}

@@ -1,0 +1,134 @@
+global:
+  env: qa  # Change to "qa" or "prod" when deploying different environments
+
+db:
+  db:
+    replicas: 3
+    env: qa
+    name: mongo-db
+  
+    containerPort: 27017
+  
+    computers:
+      requests:
+        cpu: "1500m"
+        memory: "2.5Gi"
+      limits:
+        cpu: "2000m"
+        memory: "10Gi"
+  
+  secret:
+    dbuser: bW9uZ29hZG1pbg==
+    dbpass: c2VjcmV0
+
+admin_api:
+  apps:
+    replicas: 3
+    env: qa
+    name: admin-api
+    image: harshsoni777/admin-api:v1
+    computers:
+      requests:
+        cpu: "300m"
+        memory: "1.5Gi"
+      limits:
+        cpu: "750m"
+        memory: "4Gi"
+    containerPort: 1026
+
+  service:
+    port: 1026
+    targetPort: 1026
+    nodePort: 32003
+    type: NodePort
+
+  secrets:
+    connectionString: bW9uZ29kYjovL21vbmdvYWRtaW46c2VjcmV0QG1vbmdvLWRiLXN2Yy5kYXRhYmFzZS5zdmMuY2x1c3Rlci5sb2NhbC8/cmV0cnlXcml0ZXM9dHJ1ZSZ3PW1ham9yaXR5Cg==
+
+user_api:
+  apps:
+    replicas: 3
+    env: qa
+    image: harshsoni777/user-api:v1
+    name: user-api
+    computers:  
+      requests:
+        cpu: "300m"
+        memory: "1.5Gi"
+      limits:
+        cpu: "750m"
+        memory: "4Gi"
+
+    containerPort: 1025
+    containerName: user-api
+    portName: http
+
+  service:
+    port: 1024
+    targetPort: 1025
+    nodePort: 32004
+    type: NodePort
+
+  secret:
+    connectionstring: bW9uZ29kYjovL21vbmdvYWRtaW46c2VjcmV0QG1vbmdvLWRiLXN2Yy5kYXRhYmFzZS5zdmMuY2x1c3Rlci5sb2NhbC8/cmV0cnlXcml0ZXM9dHJ1ZSZ3PW1ham9yaXR5Cg==
+  
+  configMap:
+    email: harshsoni6011@gmail.com
+
+
+admin_ui:
+  apps:
+    replicas: 3
+    env: qa
+    image: harshsoni777/admin-ui:v1
+    name: admin-ui
+    computers:
+      requests:
+        cpu: "300m"
+        memory: "1.5Gi"
+      limits:
+        cpu: "750m"
+        memory: "4Gi"
+
+    containerPort: 3000
+
+  volume:
+    name:  admin-ui-vi
+
+  service:
+    port: 3001
+    targetPort: 3000
+    type: NodePort
+
+  configmap:
+    env: REACT_APP_API_URL= http://localhost:1026
+
+user_ui:
+  apps:
+    replicas: 3
+    env: qa
+    name: user-ui
+    computers:
+      requests:
+        cpu: "300m"
+        memory: "1.5Gi"
+      limits:
+        cpu: "750m"
+        memory: "4Gi"
+    image: harshsoni777/user-ui:v1
+    containerPort: 3000
+  
+  hpa:
+    enabled: false
+
+  service:
+    port: 3000
+    targetPort: 3000
+    nodePort: 32005
+    type: NodePort
+
+  volume:
+    name: user-ui-vi #volume and volumeMount Name
+
+  configMap:
+    env: REACT_APP_API_URL= http://localhost:1025

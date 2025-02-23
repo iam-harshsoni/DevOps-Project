@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.db.name }}-{{ .Release.Name }}
+  namespace: {{ include "db.namespace" . }}  # Correct namespace key
+  labels:
+    {{- include "db.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: mongo-db # has to match .spec.template.metadata.labels
+  serviceName: {{ include "db.svc.name" . }}
+  replicas: {{ .Values.db.replicas }} # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        #app: mongo-db # has to match .spec.selector.matchLabels
+        {{- include "db.labels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongo-db
+        image: mongo
+        ports:
+        - containerPort: {{ .Values.db.containerPort }}
+          name: dbport
+
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "db.secret.name" . }}
+              key: dbuser
+
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "db.secret.name" . }}
+              key: dbpass
+        
+        resources:
+          {{- toYaml .Values.db.computers | nindent 10 }}
+
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.db.containerPort }}
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+              - mongo
+              - --eval
+              - db.adminCommand('ping')
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 5
+          
+      #   volumeMounts:
+      #   - name: my-data
+      #     mountPath: /data/db
+      # volumes:
+      #   - name:  my-data
+      #     persistentVolumeClaim:
+      #       claimName: mongo-db-pvc

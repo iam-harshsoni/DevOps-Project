@@ -1,0 +1,125 @@
+pipeline {
+    agent any
+    environment{
+        SONAR_HOME = tool "sonar-scanner"
+        ADMIN_API_IMAGE = "harshsoni777/admin-api"
+        ADMIN_UI_IMAGE = "harshsoni777/admin-ui"
+        USER_API_IMAGE = "harshsoni777/user-api"
+        USER_UI_IMAGE = "harshsoni777/user-ui"
+        TAG = "v${BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Workspace Cleanup') {
+            steps {
+                cleanWs()
+            }
+        }
+        
+        stage('Git: Code clone') {
+            steps {
+                git branch: 'main', url: 'https://github.com/iam-harshsoni/call-booking-application'
+            }
+        }
+        
+        stage('Trivy: Filesystem Scan') {
+            steps {
+                sh "trivy fs --format table -o fs.html ."
+            }
+        }
+        
+        stage('OWASP Dependency Check') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'owasp'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        
+        stage('Sonarqube: Code Analysis') {
+            steps {
+               withSonarQubeEnv('sonar') {
+                    sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectKey=callbookingmongo -Dsonar.projectName=callbookingmongo"
+                }
+            }
+        }
+        
+        stage('Sonarqube: Quality Gate Analysis') {
+            steps {
+               timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: false
+                }
+            }
+        }
+        
+        stage('Docker build') {
+            steps {
+                script{
+                     dir('admin-api'){
+                        sh "docker build -t ${ADMIN_API_IMAGE}:${TAG} ."
+                     }
+                     
+                     dir('admin-ui'){
+                        sh "docker build -t ${ADMIN_UI_IMAGE}:${TAG} ."
+                     }
+                     
+                     dir('user-api'){
+                        sh "docker build -t ${USER_API_IMAGE}:${TAG} ."
+                     }
+                     
+                     dir('user-ui'){
+                        sh "docker build -t ${USER_UI_IMAGE}:${TAG} ."
+                     }
+                }
+            }
+        }
+        
+        stage('Trivy Image Scan') {
+            steps {
+                sh """
+                    trivy image --format table -o image.html ${ADMIN_API_IMAGE}:${TAG}
+                    trivy image --format table -o image.html ${ADMIN_UI_IMAGE}:${TAG}
+                    trivy image --format table -o image.html ${USER_API_IMAGE}:${TAG}
+                    trivy image --format table -o image.html ${USER_UI_IMAGE}:${TAG}
+                """
+            }
+        }
+        
+        stage('Docker Image Push') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'dockerhub-cred') {
+                        sh """
+                            docker push ${ADMIN_API_IMAGE}:${TAG}
+                            docker push ${ADMIN_UI_IMAGE}:${TAG}
+                            docker push ${USER_API_IMAGE}:${TAG}
+                            docker push ${USER_UI_IMAGE}:${TAG}
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Update: Kubernetes Manifest') {
+            steps {
+                script{
+                    withCredentials([usernamePassword(credentialsId: 'github-cred', passwordVariable: 'git_token', usernameVariable: 'git_user_name')]) {
+                        dir('script'){
+                            sh """
+                                set -e  # Stop execution if any command fails
+                                if [ ! -f update_k8s_manifest.sh ]; then
+                                    echo "Error: Script update_k8s_manifest.sh not found!" >&2
+                                    exit 1
+                                fi
+                                chmod +x update_k8s_manifest.sh
+                                ./update_k8s_manifest.sh ${git_token} ${git_user_name} call-booking-application ${TAG}
+                            
+                            """
+                        }
+                    }
+                     
+                }
+            }
+        }
+        
+    }
+}
