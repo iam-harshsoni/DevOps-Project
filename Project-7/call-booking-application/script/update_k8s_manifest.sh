@@ -26,19 +26,18 @@ git clone "https://github.com/${git_user_name}/${git_repo_name}.git" "$repo_dir"
 cd "$repo_dir" || { echo "Error: Failed to access repository directory"; exit 1; }
 
 # Define the base directory for YAML files
-base_dir="k8s/helm"
+base_dir="k8s/helm/umbrella-chart"
 
-# Define services and environments to be updated
+# Define environments to be updated
 services=("admin-api" "admin-ui" "user-api" "user-ui")
 environments=("dev" "qa" "prod")
 
 # Track changes
 files_modified=0
 
-# Update the image tag in YAML files
 for service in "${services[@]}"; do
     for env in "${environments[@]}"; do
-        file_path="${base_dir}/${service}/values-${env}.yaml"
+        file_path="${base_dir}/values-${env}.yaml"
 
         if [ -f "$file_path" ]; then
             sed -i "s|\(image: harshsoni777/${service}:\).*|\1${image_tag}|" "$file_path"
@@ -49,6 +48,7 @@ for service in "${services[@]}"; do
         fi
     done
 done
+
 
 # If no files were modified, exit without committing
 if [ "$files_modified" -eq 0 ]; then
